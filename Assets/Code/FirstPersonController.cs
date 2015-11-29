@@ -19,6 +19,7 @@ public class FirstPersonController : MonoBehaviour {
     public float maxVelocityChange = 10.0f;
     public float mouseSensetivity = 1.0f;
 
+    public float throwStrength;
     public float jumpHeight;
     public float gravity = 9.81f;
     public float upDownRange;
@@ -31,7 +32,7 @@ public class FirstPersonController : MonoBehaviour {
     public float totalJumpsMade;
     private float floorInclineThreshold = 0.3f;
 
-    private bool runningToggle = false;
+
     public bool canCheckForJump;
 
     private bool isDead;
@@ -81,9 +82,11 @@ public class FirstPersonController : MonoBehaviour {
 
     //carrying object
     private bool isCarrying;
+    private bool dropped;
     public Transform CarryLocation;
     private GameObject MyCarryObj;
-    private Vector3 carryScale;
+    private Vector3 carryScaleNew;
+    private Vector3 carryScaleOld;
 
     void Awake () {
         GetComponent<Rigidbody>().freezeRotation = true;
@@ -93,7 +96,9 @@ public class FirstPersonController : MonoBehaviour {
     
     // Use this for initialization
     void Start () {
-        carryScale = new Vector3(0.5f, 0.5f, 0.5f);
+        dropped = true;
+        carryScaleOld = new Vector3(0.1f, 0.1f, 0.1f);
+        carryScaleNew = new Vector3(0.05f, 0.05f, 0.05f);
         setControlStrings();
         //animController = gameObject.transform.GetChild (1).GetComponent<Animator> ();
         messageEdited = 1;
@@ -109,6 +114,25 @@ public class FirstPersonController : MonoBehaviour {
         Cursor.lockState = CursorLockMode.Locked;
     }
 
+    void Update ()
+    {
+        if(Input.GetAxis(Drop_str) == 1 && !dropped)
+        {
+            Drop();
+        }
+        if(Input.GetAxis(Fire_str) == 1 && !dropped)
+        {
+            Throw();
+        }
+
+        if (isCarrying && !dropped && CarryLocation.childCount == 0)
+        {
+            //this only occurs if another squirrel steals your loot.
+            MyCarryObj = null;
+            isCarrying = false;
+            dropped = true;
+        }
+    }
 
 
     void FixedUpdate () {
@@ -292,33 +316,51 @@ public class FirstPersonController : MonoBehaviour {
     void OnTriggerEnter(Collider colObj)
     {
         Debug.Log("I COLLIDED WITH: " + colObj.gameObject.name);
-        if (!isCarrying && colObj.gameObject.name.Contains("TV"))
+        if (!isCarrying && colObj.gameObject.name.Contains("TV") && dropped)
             SetToCarrying(colObj.gameObject);
     }
 
     private void SetToCarrying(GameObject NewCarry)
     {
         Rigidbody colRig = NewCarry.GetComponent<Rigidbody>();
+        NewCarry.GetComponent<BoxCollider>().enabled = false;
         isCarrying = true;
+        dropped = false;
         colRig.isKinematic = true;
         NewCarry.transform.SetParent(CarryLocation, false);
         MyCarryObj = NewCarry;
-        MyCarryObj.transform.localScale = carryScale;
+        MyCarryObj.transform.localScale = carryScaleNew;
         MyCarryObj.transform.localPosition = Vector3.zero;
+        MyCarryObj.transform.localRotation = Quaternion.Euler(Vector3.zero);
     }
 
     private void Drop()
     {
         MyCarryObj.GetComponent<Rigidbody>().isKinematic = false;
+        MyCarryObj.GetComponent<BoxCollider>().enabled = true;
         MyCarryObj.transform.SetParent(null);
-        isCarrying = false;
-        MyCarryObj.transform.localScale = Vector3.one;
+        StartCoroutine(DelayCarrying());
+        MyCarryObj.transform.localScale = carryScaleOld;
         MyCarryObj = null;
+        dropped = true;
     }
 
     private void Throw()
     {
+        MyCarryObj.GetComponent<Rigidbody>().isKinematic = false;
+        MyCarryObj.GetComponent<Rigidbody>().AddRelativeForce(new Vector3(0f, 0f, throwStrength), ForceMode.VelocityChange);
+        MyCarryObj.GetComponent<BoxCollider>().enabled = true;
+        MyCarryObj.transform.SetParent(null);
+        StartCoroutine(DelayCarrying());
+        MyCarryObj.transform.localScale = carryScaleOld;
+        MyCarryObj = null;
+        dropped = true;
+    }
 
+    IEnumerator DelayCarrying()
+    {
+        yield return new WaitForSeconds(1f);
+        isCarrying = false;
     }
 
     
