@@ -47,6 +47,7 @@ public class FirstPersonController : MonoBehaviour {
     private string Jump_str = "_Jump";
     private string Dash_str = "_Run";
     private string Zoom_str = "_Zoom";
+    private string Drop_str = "_Drop";
     //==================================================================
 
     //PERSONAL CHARACTER MODIFIERS
@@ -80,6 +81,9 @@ public class FirstPersonController : MonoBehaviour {
 
     //carrying object
     private bool isCarrying;
+    public Transform CarryLocation;
+    private GameObject MyCarryObj;
+    private Vector3 carryScale;
 
     void Awake () {
         GetComponent<Rigidbody>().freezeRotation = true;
@@ -89,6 +93,7 @@ public class FirstPersonController : MonoBehaviour {
     
     // Use this for initialization
     void Start () {
+        carryScale = new Vector3(0.5f, 0.5f, 0.5f);
         setControlStrings();
         //animController = gameObject.transform.GetChild (1).GetComponent<Animator> ();
         messageEdited = 1;
@@ -100,6 +105,8 @@ public class FirstPersonController : MonoBehaviour {
         isDead = false;
         isCarrying = false;
         gameObject.GetComponent<Rigidbody>().isKinematic = false;
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
 
@@ -115,7 +122,7 @@ public class FirstPersonController : MonoBehaviour {
 
         //if you are able to reach something, anything important or not
         if (Physics.Raycast(rayOrigin, out hitInfo)) {
-            if (Time.time % 2f > 1.8f) { Debug.Log("Below me is: " + hitInfo.normal.y); }
+            //if (Time.time % 2f > 1.8f) { Debug.Log("Below me is: " + hitInfo.normal.y); }
             if (hitInfo.normal.y <= 0.4f)
             {
                 canMove = false;
@@ -176,7 +183,6 @@ public class FirstPersonController : MonoBehaviour {
         }
         if (messageEdited != 1) {
             if(messageEdited == 3){
-                rezPlayer();
                 messageEdited = 1;
             }else{
                 Debug.Log(GameObject.Find ("TypeCanvas").transform.GetChild (1).GetChild(2).GetComponent<Text>().text);
@@ -200,24 +206,8 @@ public class FirstPersonController : MonoBehaviour {
         return Mathf.Sqrt(2 * (jumpHeight+jumpHeightModifier-weightModifier) * gravity);
     }
 
-    public bool getIsDead(){
-        return isDead;
-    }
-
     public bool getIsCarrying(){
         return isCarrying;
-    }
-
-    public void setCarrying(bool hasCarry){
-        isCarrying = hasCarry;	
-    }
-
-    private void rezPlayer(){
-        Instantiate(cloneToCopyUponDeath, 
-                    GameObject.Find("SpawnPoint").transform.position, 
-                    GameObject.Find("SpawnPoint").transform.rotation
-                    );
-        gameObject.transform.GetChild(0).gameObject.SetActive(false);
     }
 
     private void setControlStrings(){
@@ -232,6 +222,7 @@ public class FirstPersonController : MonoBehaviour {
             Jump_str = "p1" + Jump_str;
             Dash_str = "p1" + Dash_str;
             Zoom_str = "p1" + Zoom_str;
+            Drop_str = "p1" + Drop_str;
         }
         if (pName.Contains("4"))
         {
@@ -243,6 +234,7 @@ public class FirstPersonController : MonoBehaviour {
             Jump_str = "p4" + Jump_str;
             Dash_str = "p4" + Dash_str;
             Zoom_str = "p4" + Zoom_str;
+            Drop_str = "p4" + Drop_str;
         }
         if (pName.Contains("2"))
         {
@@ -254,6 +246,7 @@ public class FirstPersonController : MonoBehaviour {
             Jump_str = "p2" + Jump_str;
             Dash_str = "p2" + Dash_str;
             Zoom_str = "p2" + Zoom_str;
+            Drop_str = "p2" + Drop_str;
         }
         if (pName.Contains("3"))
         {
@@ -265,6 +258,7 @@ public class FirstPersonController : MonoBehaviour {
             Jump_str = "p3" + Jump_str;
             Dash_str = "p3" + Dash_str;
             Zoom_str = "p3" + Zoom_str;
+            Drop_str = "p3" + Drop_str;
         }
     }
 
@@ -294,4 +288,38 @@ public class FirstPersonController : MonoBehaviour {
             }
         }
     }
+
+    void OnTriggerEnter(Collider colObj)
+    {
+        Debug.Log("I COLLIDED WITH: " + colObj.gameObject.name);
+        if (!isCarrying && colObj.gameObject.name.Contains("TV"))
+            SetToCarrying(colObj.gameObject);
+    }
+
+    private void SetToCarrying(GameObject NewCarry)
+    {
+        Rigidbody colRig = NewCarry.GetComponent<Rigidbody>();
+        isCarrying = true;
+        colRig.isKinematic = true;
+        NewCarry.transform.SetParent(CarryLocation, false);
+        MyCarryObj = NewCarry;
+        MyCarryObj.transform.localScale = carryScale;
+        MyCarryObj.transform.localPosition = Vector3.zero;
+    }
+
+    private void Drop()
+    {
+        MyCarryObj.GetComponent<Rigidbody>().isKinematic = false;
+        MyCarryObj.transform.SetParent(null);
+        isCarrying = false;
+        MyCarryObj.transform.localScale = Vector3.one;
+        MyCarryObj = null;
+    }
+
+    private void Throw()
+    {
+
+    }
+
+    
 }
