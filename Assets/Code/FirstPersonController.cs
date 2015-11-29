@@ -49,6 +49,7 @@ public class FirstPersonController : MonoBehaviour {
     private string Dash_str = "_Run";
     private string Zoom_str = "_Zoom";
     private string Drop_str = "_Drop";
+    private string Bury_str = "_Bury";
     //==================================================================
 
     //PERSONAL CHARACTER MODIFIERS
@@ -58,6 +59,8 @@ public class FirstPersonController : MonoBehaviour {
     public float healthModifier;
     public float jumpHeightModifier;
     public float armorModifier;
+    public float carryingSpeed;
+    public float normalSpeed;
 
     public GameObject cloneToCopyUponDeath;
     public GameObject signToPlaceUponDeath;
@@ -87,7 +90,9 @@ public class FirstPersonController : MonoBehaviour {
     private GameObject MyCarryObj;
     private Vector3 carryScaleNew;
     private Vector3 carryScaleOld;
+    private GameObject burriedTV;
 
+    private bool isBurying;
     void Awake () {
         GetComponent<Rigidbody>().freezeRotation = true;
         GetComponent<Rigidbody>().useGravity = false;
@@ -96,8 +101,9 @@ public class FirstPersonController : MonoBehaviour {
     
     // Use this for initialization
     void Start () {
+        isBurying = false;
         dropped = true;
-        carryScaleOld = new Vector3(0.1f, 0.1f, 0.1f);
+        carryScaleOld = new Vector3(0.3f, 0.3f, 0.3f);
         carryScaleNew = new Vector3(0.05f, 0.05f, 0.05f);
         setControlStrings();
         //animController = gameObject.transform.GetChild (1).GetComponent<Animator> ();
@@ -123,6 +129,11 @@ public class FirstPersonController : MonoBehaviour {
         if(Input.GetAxis(Fire_str) == 1 && !dropped)
         {
             Throw();
+        }
+
+        if (Input.GetAxis(Bury_str) == 1 && !dropped)
+        {
+            Bury();
         }
 
         if (isCarrying && !dropped && CarryLocation.childCount == 0)
@@ -173,7 +184,7 @@ public class FirstPersonController : MonoBehaviour {
             transform.GetChild (0).transform.localRotation = Quaternion.Euler (newRotationAngle);
 
             //Jumping!!
-            if (totalJumpsMade < totalJumpsAllowed && Input.GetButtonDown (Jump_str)) {
+            if (totalJumpsMade < totalJumpsAllowed && Input.GetButtonDown (Jump_str) && !isBurying) {
                 totalJumpsMade += 1;
                 isGrounded = false;
                 canCheckForJump = false;
@@ -182,7 +193,7 @@ public class FirstPersonController : MonoBehaviour {
 
                 Invoke ("AllowJumpCheck", 0.1f);
             }
-            if (canMove) {
+            if (canMove && !isBurying) {
                 Vector3 targetVelocity;
                 targetVelocity = new Vector3 (Input.GetAxis (Strf_str), 0, Input.GetAxis (FWmv_str));
                 
@@ -247,6 +258,7 @@ public class FirstPersonController : MonoBehaviour {
             Dash_str = "p1" + Dash_str;
             Zoom_str = "p1" + Zoom_str;
             Drop_str = "p1" + Drop_str;
+            Bury_str = "p1" + Bury_str;
         }
         if (pName.Contains("4"))
         {
@@ -259,6 +271,7 @@ public class FirstPersonController : MonoBehaviour {
             Dash_str = "p4" + Dash_str;
             Zoom_str = "p4" + Zoom_str;
             Drop_str = "p4" + Drop_str;
+            Bury_str = "p4" + Bury_str;
         }
         if (pName.Contains("2"))
         {
@@ -271,6 +284,7 @@ public class FirstPersonController : MonoBehaviour {
             Dash_str = "p2" + Dash_str;
             Zoom_str = "p2" + Zoom_str;
             Drop_str = "p2" + Drop_str;
+            Bury_str = "p2" + Bury_str;
         }
         if (pName.Contains("3"))
         {
@@ -283,6 +297,7 @@ public class FirstPersonController : MonoBehaviour {
             Dash_str = "p3" + Dash_str;
             Zoom_str = "p3" + Zoom_str;
             Drop_str = "p3" + Drop_str;
+            Bury_str = "p3" + Bury_str;
         }
     }
 
@@ -320,6 +335,22 @@ public class FirstPersonController : MonoBehaviour {
             SetToCarrying(colObj.gameObject);
     }
 
+    void OnTriggerStay(Collider colObj)
+    {
+        if (colObj.gameObject.name.Contains("TV"))
+        {
+            if(colObj.transform.GetComponent<MeshRenderer>().enabled == false)
+            {
+                burriedTV = colObj.gameObject;
+            }
+        }
+    }
+
+    void OnTriggerExit(Collider colObj)
+    {
+        burriedTV = null;
+    }
+
     private void SetToCarrying(GameObject NewCarry)
     {
         Rigidbody colRig = NewCarry.GetComponent<Rigidbody>();
@@ -332,6 +363,7 @@ public class FirstPersonController : MonoBehaviour {
         MyCarryObj.transform.localScale = carryScaleNew;
         MyCarryObj.transform.localPosition = Vector3.zero;
         MyCarryObj.transform.localRotation = Quaternion.Euler(Vector3.zero);
+        moveSpeed = carryingSpeed;
     }
 
     private void Drop()
@@ -343,6 +375,7 @@ public class FirstPersonController : MonoBehaviour {
         MyCarryObj.transform.localScale = carryScaleOld;
         MyCarryObj = null;
         dropped = true;
+        moveSpeed = normalSpeed;
     }
 
     private void Throw()
@@ -355,12 +388,56 @@ public class FirstPersonController : MonoBehaviour {
         MyCarryObj.transform.localScale = carryScaleOld;
         MyCarryObj = null;
         dropped = true;
+        moveSpeed = normalSpeed;
+    }
+
+    private void Bury()
+    {
+        if (!dropped)
+        {
+            StartCoroutine(DelayBurying());
+        }
+        else
+        {
+            StartCoroutine(TestIfBurried());
+        }
     }
 
     IEnumerator DelayCarrying()
     {
         yield return new WaitForSeconds(1f);
         isCarrying = false;
+    }
+
+    IEnumerator TestIfBurried()
+    {
+        isBurying = true;
+        yield return new WaitForSeconds(1.5f);
+        if(burriedTV != null)
+        {
+            MyCarryObj = burriedTV;
+            MyCarryObj.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = true;
+            MyCarryObj.transform.SetParent(CarryLocation, false);
+            StartCoroutine(DelayCarrying());
+            MyCarryObj.transform.localScale = carryScaleNew;
+            dropped = false;
+            moveSpeed = carryingSpeed;
+            isBurying = false;
+        }
+    }
+
+    IEnumerator DelayBurying()
+    {
+        isBurying = true;
+        yield return new WaitForSeconds(1.5f);
+        MyCarryObj.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = false;
+        MyCarryObj.transform.SetParent(null);
+        StartCoroutine(DelayCarrying());
+        MyCarryObj.transform.localScale = carryScaleOld;
+        MyCarryObj = null;
+        dropped = true;
+        moveSpeed = normalSpeed;
+        isBurying = false;
     }
 
     
