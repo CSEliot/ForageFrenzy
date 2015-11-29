@@ -19,10 +19,10 @@ public class scoreDisplay : MonoBehaviour {
     }
     public void ScoreText()
     {
-        MyPrintThing.text = "PLAYER" +Player.scoreGoalNumber +"SCORES";
+        MyPrintThing.text = "SCORE " + Player.GetScore();
     }
     public void Winner()
     {
-        MyPrintThing.text = "PLAYER" +Player.scoreGoalNumber +"WINS";
+        MyPrintThing.text = "PLAYER " + Player.scoreGoalNumber +" WINS";
     }
 }
