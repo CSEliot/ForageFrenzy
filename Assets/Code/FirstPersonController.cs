@@ -122,21 +122,21 @@ public class FirstPersonController : MonoBehaviour {
 
     void Update ()
     {
-        if(Input.GetAxis(Drop_str) == 1 && !dropped)
+        if(!isBurying && Input.GetAxis(Drop_str) == 1 && !dropped)
         {
             Drop();
         }
-        if(Input.GetAxis(Fire_str) == 1 && !dropped)
+        if (!isBurying && Input.GetAxis(Fire_str) == 1 && !dropped)
         {
             Throw();
         }
 
-        if (Input.GetAxis(Bury_str) == 1 && !dropped)
+        if (!isBurying && Input.GetAxis(Bury_str) == 1 && !dropped)
         {
             Bury();
         }
 
-        if (isCarrying && !dropped && CarryLocation.childCount == 0)
+        if (!isBurying && isCarrying && !dropped && CarryLocation.childCount == 0)
         {
             //this only occurs if another squirrel steals your loot.
             MyCarryObj = null;
@@ -170,7 +170,7 @@ public class FirstPersonController : MonoBehaviour {
         
         clock = clock + Time.deltaTime;
 
-        if (isDead == false) {		
+        if (!isBurying) {		
             //player rotation
             //left and right
             rotLeftRight = Input.GetAxis (Haim_str) * mouseSensetivity;
@@ -337,9 +337,9 @@ public class FirstPersonController : MonoBehaviour {
 
     void OnTriggerStay(Collider colObj)
     {
-        if (colObj.gameObject.name.Contains("TV"))
+        if (colObj.gameObject.name.Contains("TV") && dropped)
         {
-            if(colObj.transform.GetComponent<MeshRenderer>().enabled == false)
+            if(colObj.transform.GetChild(0).GetComponent<MeshRenderer>().enabled == false)
             {
                 burriedTV = colObj.gameObject;
             }
@@ -348,7 +348,13 @@ public class FirstPersonController : MonoBehaviour {
 
     void OnTriggerExit(Collider colObj)
     {
-        burriedTV = null;
+        if (colObj.gameObject.name.Contains("TV") && dropped)
+        {
+            if (colObj.transform.GetChild(0).GetComponent<MeshRenderer>().enabled == false)
+            {
+                burriedTV = null;
+            }
+        }
     }
 
     private void SetToCarrying(GameObject NewCarry)
@@ -363,6 +369,7 @@ public class FirstPersonController : MonoBehaviour {
         MyCarryObj.transform.localScale = carryScaleNew;
         MyCarryObj.transform.localPosition = Vector3.zero;
         MyCarryObj.transform.localRotation = Quaternion.Euler(Vector3.zero);
+        MyCarryObj.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = true;
         moveSpeed = carryingSpeed;
     }
 
@@ -415,14 +422,8 @@ public class FirstPersonController : MonoBehaviour {
         yield return new WaitForSeconds(1.5f);
         if(burriedTV != null)
         {
-            MyCarryObj = burriedTV;
-            MyCarryObj.transform.GetChild(0).GetComponent<MeshRenderer>().enabled = true;
-            MyCarryObj.transform.SetParent(CarryLocation, false);
-            StartCoroutine(DelayCarrying());
-            MyCarryObj.transform.localScale = carryScaleNew;
-            dropped = false;
-            moveSpeed = carryingSpeed;
-            isBurying = false;
+            SetToCarrying(burriedTV);
+            burriedTV = null;
         }
     }
 
