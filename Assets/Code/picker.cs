@@ -12,7 +12,7 @@ public class picker : MonoBehaviour {
 
     public List<Transform> PosList = new List<Transform>();
 
-    float Timer = 0;
+    float Timer;
 
     //public Transform[] PosList;
 
@@ -20,12 +20,13 @@ public class picker : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        
+        Timer = SpawnFreq*4f;
     }
     
     // Update is called once per frame
     void Update () {
         Timer += Time.deltaTime;
+                
         if (Timer >= SpawnFreq)
         {
             RandLoc = (int)(Random.value * (PosList.Count - 1));

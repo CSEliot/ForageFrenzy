@@ -8,16 +8,24 @@ public class sfx : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-	
+        PlaySong(0);
 	}
 	
 	// Update is called once per frame
 	void Update () {
-	
+        if (Input.GetKeyDown("p"))
+        {
+            PlaySong(0);
+        }
+        if (Input.GetKeyDown("o"))
+        {
+            PlaySong(1);
+        }
 	}
 
     public void PlaySong(int song)
     {
+        myPlayer.pitch = Random.Range(0.5f, 2.5f);
         myPlayer.Stop();
         myPlayer.clip = musicList[song];
         myPlayer.Play();
