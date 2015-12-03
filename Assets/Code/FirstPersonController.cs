@@ -50,6 +50,7 @@ public class FirstPersonController : MonoBehaviour {
     private string Zoom_str = "_Zoom";
     private string Drop_str = "_Drop";
     private string Bury_str = "_Bury";
+    private string Help_str = "_Help";
     //==================================================================
 
     //PERSONAL CHARACTER MODIFIERS
@@ -67,7 +68,8 @@ public class FirstPersonController : MonoBehaviour {
 
     public bool isZoomed = false;
 
-
+    public GameObject PanelHelpText;
+    private bool ActiveText = true;
     //cliff control
     Ray rayOrigin;
     RaycastHit hitInfo;
@@ -150,6 +152,11 @@ public class FirstPersonController : MonoBehaviour {
             isCarrying = false;
             dropped = true;
             moveSpeed = normalSpeed;
+        }
+
+        if (Input.GetButtonDown(Help_str))
+        {
+            ToggleHelpText();
         }
     }
 
@@ -267,6 +274,7 @@ public class FirstPersonController : MonoBehaviour {
             Zoom_str = "p1" + Zoom_str;
             Drop_str = "p1" + Drop_str;
             Bury_str = "p1" + Bury_str;
+            Help_str = "p1" + Help_str;
         }
         if (pName.Contains("4"))
         {
@@ -280,6 +288,7 @@ public class FirstPersonController : MonoBehaviour {
             Zoom_str = "p4" + Zoom_str;
             Drop_str = "p4" + Drop_str;
             Bury_str = "p4" + Bury_str;
+            Help_str = "p4" + Help_str;
         }
         if (pName.Contains("2"))
         {
@@ -293,6 +302,7 @@ public class FirstPersonController : MonoBehaviour {
             Zoom_str = "p2" + Zoom_str;
             Drop_str = "p2" + Drop_str;
             Bury_str = "p2" + Bury_str;
+            Help_str = "p2" + Help_str;
         }
         if (pName.Contains("3"))
         {
@@ -306,6 +316,7 @@ public class FirstPersonController : MonoBehaviour {
             Zoom_str = "p3" + Zoom_str;
             Drop_str = "p3" + Drop_str;
             Bury_str = "p3" + Bury_str;
+            Help_str = "p3" + Help_str;
         }
     }
 
@@ -449,5 +460,8 @@ public class FirstPersonController : MonoBehaviour {
         isBurying = false;
     }
 
-    
+    private void ToggleHelpText(){
+        ActiveText = !ActiveText;
+        PanelHelpText.SetActive(ActiveText);
+    }
 }
