@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 public class score : MonoBehaviour
 {
+
+    public Camera[] winnerCameras;
     public scoreDisplay myScore;
     public int scoreGoalNumber;//this is what team you're on  -kit
     private int playerScore = 0;
@@ -19,7 +21,9 @@ public class score : MonoBehaviour
             if (playerScore >= scoreToWin)//Might be better as == scoreToWin idk -kit
             {
                 myScore.Winner();
-                Debug.Log("you win!!!!!" +scoreGoalNumber);
+                Debug.Log("you win!!!!! \n" + (scoreGoalNumber + 1));
+                winnerCameras[scoreGoalNumber].rect = new Rect(0f, 0f, 1f, 1f);
+                winnerCameras[scoreGoalNumber].depth = 100f;
             }
         }
     }
