@@ -59,8 +59,8 @@ public class FirstPersonController : MonoBehaviour {
     public float healthModifier;
     public float jumpHeightModifier;
     public float armorModifier;
-    public float carryingSpeed;
-    public float normalSpeed;
+    private float carryingSpeed;
+    private float normalSpeed;
 
     public GameObject cloneToCopyUponDeath;
     public GameObject signToPlaceUponDeath;
@@ -101,10 +101,12 @@ public class FirstPersonController : MonoBehaviour {
     
     // Use this for initialization
     void Start () {
+        normalSpeed = moveSpeed;
+        carryingSpeed = normalSpeed / 2f;
         isBurying = false;
         dropped = true;
         carryScaleOld = new Vector3(0.3f, 0.3f, 0.3f);
-        carryScaleNew = new Vector3(0.05f, 0.05f, 0.05f);
+        carryScaleNew = carryScaleOld;//new Vector3(0.05f, 0.05f, 0.05f);
         setControlStrings();
         //animController = gameObject.transform.GetChild (1).GetComponent<Animator> ();
         messageEdited = 1;
@@ -133,7 +135,12 @@ public class FirstPersonController : MonoBehaviour {
 
         if (!isBurying && Input.GetAxis(Bury_str) == 1 && !dropped)
         {
-            Bury();
+            //Bury();
+        }
+
+        if (Input.GetAxis(Fire_str) == 1)
+        {
+            Debug.Log(GetComponent<Rigidbody>().velocity);
         }
 
         if (!isBurying && isCarrying && !dropped && CarryLocation.childCount == 0)
@@ -142,6 +149,7 @@ public class FirstPersonController : MonoBehaviour {
             MyCarryObj = null;
             isCarrying = false;
             dropped = true;
+            moveSpeed = normalSpeed;
         }
     }
 
@@ -330,7 +338,6 @@ public class FirstPersonController : MonoBehaviour {
 
     void OnTriggerEnter(Collider colObj)
     {
-        Debug.Log("I COLLIDED WITH: " + colObj.gameObject.name);
         if (!isCarrying && colObj.gameObject.name.Contains("TV") && dropped)
             SetToCarrying(colObj.gameObject);
     }
@@ -388,11 +395,12 @@ public class FirstPersonController : MonoBehaviour {
     private void Throw()
     {
         MyCarryObj.GetComponent<Rigidbody>().isKinematic = false;
-        MyCarryObj.GetComponent<Rigidbody>().AddRelativeForce(new Vector3(0f, 0f, throwStrength), ForceMode.VelocityChange);
         MyCarryObj.GetComponent<BoxCollider>().enabled = true;
         MyCarryObj.transform.SetParent(null);
         StartCoroutine(DelayCarrying());
         MyCarryObj.transform.localScale = carryScaleOld;
+
+        MyCarryObj.GetComponent<Rigidbody>().AddRelativeForce(new Vector3(0f, 0f, Mathf.Abs(throwStrength*(GetComponent<Rigidbody>().velocity.z * 2)) +15f), ForceMode.Impulse);
         MyCarryObj = null;
         dropped = true;
         moveSpeed = normalSpeed;

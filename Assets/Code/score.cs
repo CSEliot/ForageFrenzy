@@ -15,6 +15,7 @@ public class score : MonoBehaviour
             Destroy(col.gameObject);
             playerScore += 1;
             myScore.ScoreText();
+            GameObject.FindGameObjectWithTag("sfx").GetComponent<sfx>().PlaySong(0);
             if (playerScore >= scoreToWin)//Might be better as == scoreToWin idk -kit
             {
                 myScore.Winner();
