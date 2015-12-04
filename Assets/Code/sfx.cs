@@ -25,7 +25,7 @@ public class sfx : MonoBehaviour {
 
     public void PlaySong(int song)
     {
-        myPlayer.pitch = Random.Range(0.5f, 2.5f);
+        myPlayer.pitch = Random.Range(0.9f, 1.1f);
         myPlayer.Stop();
         myPlayer.clip = musicList[song];
         myPlayer.Play();
