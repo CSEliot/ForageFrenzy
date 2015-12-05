@@ -15,7 +15,14 @@ public class score : MonoBehaviour
         if(col.gameObject.name.Contains("TV"))//when there's a collision -kit
         {
             Destroy(col.gameObject);
-            playerScore += 1;
+            if (gameObject.name.Contains("1"))
+            {
+                playerScore += 3;
+            }
+            else
+            {
+                playerScore += 1;
+            }
             myScore.ScoreText();
             GameObject.FindGameObjectWithTag("sfx").GetComponent<sfx>().PlaySong(0);
             if (playerScore >= scoreToWin)//Might be better as == scoreToWin idk -kit

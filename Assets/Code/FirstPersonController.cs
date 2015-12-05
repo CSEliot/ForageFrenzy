@@ -16,13 +16,14 @@ public class FirstPersonController : MonoBehaviour {
     //public Vector3 speed;
     public float verticalSpeed;
     public float rotLeftRight;
-    public float maxVelocityChange = 10.0f;
+    public float maxVelocityChange;
     public float mouseSensetivity = 1.0f;
 
     public float throwStrength;
     public float jumpHeight;
     public float gravity = 9.81f;
     public float upDownRange;
+    public float upDownSpeed;
     private Vector3 playerPos;
     private Ray	ray;
     private RaycastHit rayHitDown;
@@ -122,6 +123,7 @@ public class FirstPersonController : MonoBehaviour {
         gameObject.GetComponent<Rigidbody>().isKinematic = false;
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
+        maxVelocityChange = moveSpeed;
     }
 
     void Update ()
@@ -191,7 +193,7 @@ public class FirstPersonController : MonoBehaviour {
             rotLeftRight = Input.GetAxis (Haim_str) * mouseSensetivity;
             transform.Rotate (0, rotLeftRight, 0);
             //up and down (with camera)
-            rotUpDown -= Input.GetAxis (Vaim_str) * mouseSensetivity;
+            rotUpDown -= Input.GetAxis (Vaim_str) * mouseSensetivity  * upDownSpeed;
             rotUpDown = Mathf.Clamp (rotUpDown, -upDownRange, upDownRange);
             newRotationAngle.x = rotUpDown;
             newRotationAngle.y = startingCameraRotation.y;
